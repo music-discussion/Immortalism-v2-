@@ -38,6 +38,7 @@ enum abstract Action(String) to String from String
 	var BACK = "back";
 	var PAUSE = "pause";
 	var RESET = "reset";
+	var FULLSCREEN = "fullscreen";
 	var CHEAT = "cheat";
 	var GTSTRUM = "gtstrum";
 
@@ -115,6 +116,7 @@ abstract Action(String) to String from String
 	var BACK = "back";
 	var PAUSE = "pause";
 	var RESET = "reset";
+	var FULLSCREEN = "fullscreen";
 	var CHEAT = "cheat";
 	var GTSTRUM = "gtstrum";
 
@@ -191,6 +193,7 @@ enum Control
 	DOWN;
 
 	RESET;
+	FULLSCREEN;
 	ACCEPT;
 	BACK;
 	PAUSE;
@@ -246,6 +249,7 @@ class Controls extends FlxActionSet
 	var _back = new FlxActionDigital(Action.BACK);
 	var _pause = new FlxActionDigital(Action.PAUSE);
 	var _reset = new FlxActionDigital(Action.RESET);
+	var _fullScreen = new FlxActionDigital(Action.FULLSCREEN);
 	var _cheat = new FlxActionDigital(Action.CHEAT);
 	var _gtstrum = new FlxActionDigital(Action.GTSTRUM);
 
@@ -392,6 +396,11 @@ class Controls extends FlxActionSet
 
 	inline function get_RESET()
 		return _reset.check();
+
+	public var FULLSCREEN(get, never):Bool;
+
+	inline function get_FULLSCREEN()
+		return _fullScreen.check();
 
 	public var CHEAT(get, never):Bool;
 
@@ -577,6 +586,7 @@ class Controls extends FlxActionSet
 		add(_back);
 		add(_pause);
 		add(_reset);
+		add(_fullScreen);
 		add(_cheat);
 		add(_gtstrum);
 
@@ -657,6 +667,7 @@ class Controls extends FlxActionSet
 		add(_back);
 		add(_pause);
 		add(_reset);
+		add(_fullScreen);
 		add(_cheat);
 		add(_gtstrum);
 
@@ -769,6 +780,7 @@ class Controls extends FlxActionSet
 			case BACK: _back;
 			case PAUSE: _pause;
 			case RESET: _reset;
+			case FULLSCREEN: _fullScreen;
 			case CHEAT: _cheat;
 			case GTSTRUM: _gtstrum;
 
@@ -833,6 +845,8 @@ class Controls extends FlxActionSet
 				func(_pause, JUST_PRESSED);
 			case RESET:
 				func(_reset, JUST_PRESSED);
+			case FULLSCREEN:
+				func(_fullScreen, JUST_PRESSED);
 			case CHEAT:
 				func(_cheat, JUST_PRESSED);
 			case GTSTRUM:
@@ -1151,8 +1165,9 @@ class Controls extends FlxActionSet
 
 		inline bindKeys(Control.ACCEPT, [Z, SPACE, ENTER]);
 		inline bindKeys(Control.BACK, [BACKSPACE, ESCAPE]);
-		inline bindKeys(Control.PAUSE, [ENTER, ESCAPE]);
+		inline bindKeys(Control.PAUSE, [FlxKey.fromString(FlxG.save.data.pauseBind)]);
 		inline bindKeys(Control.RESET, [FlxKey.fromString(FlxG.save.data.killBind)]);
+		inline bindKeys(Control.FULLSCREEN, [FlxKey.fromString(FlxG.save.data.F11Bind)]);
 		inline bindKeys(Control.GTSTRUM, [SPACE]);
 
 		inline bindKeys(Control.N0, [FlxKey.fromString(FlxG.save.data.N0Bind)]);

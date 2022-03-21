@@ -396,6 +396,10 @@ class MainMenuState extends MusicBeatState
 				{
 					fancyOpenURL("https://ninja-muffin24.itch.io/funkin");
 				}
+				else if (optionShit[curSelected] == 'freeplay')
+				{
+					FlxG.sound.play(Paths.soundRandom('missnote', 1, 3, 'shared'), FlxG.random.float(0.1, 0.2));
+				}
 				else
 				{
 					selectedSomethin = true;
@@ -459,9 +463,10 @@ class MainMenuState extends MusicBeatState
 				FlxG.switchState(new StoryMenuState());
 				trace("Story Menu Selected");
 			case 'freeplay':
-				FlxG.switchState(new FreeplayState());
+			//	FlxG.switchState(new FreeplayState());
+				FlxG.sound.play(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.1, 0.2));
 
-				trace("Freeplay Menu Selected");
+				trace("Freeplay Menu Selected, oh wait it is locked");
 
 			case 'options':
 				FlxG.switchState(new OptionsMenu());

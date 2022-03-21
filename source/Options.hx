@@ -990,6 +990,49 @@ class NineKeyMenu extends Option
 	}
 }
 
+class TwelveKeyMenu extends Option
+{
+	private var controls:Controls;
+
+	public function new(controls:Controls)
+	{
+		super();
+		this.controls = controls;
+	}
+
+	public override function press():Bool
+	{
+		OptionsMenu.instance.openSubState(new twelvekey.TwelveKeySubState());
+		return false;
+	}
+
+	private override function updateDisplay():String
+	{
+		return "Binds";
+	}
+}
+
+class KeyReminders extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+	}
+
+	public override function press():Bool
+	{
+		FlxG.save.data.remindEK = !FlxG.save.data.remindEK;
+		display = updateDisplay();
+		return true;
+	}
+
+	private override function updateDisplay():String
+	{
+		return FlxG.save.data.remindEK ? "Remind Controls at Start" : "Keep Controls Hidden";
+	}
+}
+
 class ResetScoreOption extends Option
 {
 	var confirm:Bool = false;

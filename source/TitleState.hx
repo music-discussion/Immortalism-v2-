@@ -43,7 +43,7 @@ import sys.io.File;
 import sys.FileSystem;
 
 import HscriptShit;
-
+import twelvekey.NoteVariables;
 
 #if cpp
 import sys.thread.Thread;
@@ -120,13 +120,7 @@ class TitleState extends MusicBeatState
 
 		curWacky = FlxG.random.getObject(getIntroTextShit());
 
-		trace('hello');
-
-		// DEBUG BULLSHIT
-
 		super.create();
-
-		// NGio.noLogin(APIStuff.API);
 
 		#if ng
 		var ng:NGio = new NGio(APIStuff.API, APIStuff.EncKey);
@@ -135,19 +129,14 @@ class TitleState extends MusicBeatState
 
 		FlxG.save.bind('funkin', 'ninjamuffin99');
 
-		KadeEngineData.initSave();
-
-		// var file:SMFile = SMFile.loadFile("file.sm");
-		// this was testing things
-		
 		Highscore.load();
+
+		//we need leather_engine note vars
+		NoteVariables.init();
+		KadeEngineData.initSave();
 
 		if (FlxG.save.data.weekUnlocked != null)
 		{
-			// FIX LATER!!!
-			// WEEK UNLOCK PROGRESSION!!
-			// StoryMenuState.weekUnlocked = FlxG.save.data.weekUnlocked;
-
 			if (StoryMenuState.weekUnlocked.length < 4)
 				StoryMenuState.weekUnlocked.insert(0, true);
 
@@ -388,7 +377,10 @@ class TitleState extends MusicBeatState
 						trace('outdated lmao! ' + returnedData[0] + ' != ' + MainMenuState.kadeEngineVer);
 						OutdatedSubState.needVer = returnedData[0];
 						OutdatedSubState.currChanges = returnedData[1];
-						if (FlxG.random.int(1, 100) == 57 || forceCheat)
+						var chance = FlxG.random.int(1, 100);
+						trace(chance);
+
+						if (chance > 35 && chance < 41 || forceCheat)
 							FlxG.switchState(new CheatingState());
 						else
 							FlxG.switchState(new MainMenuState());

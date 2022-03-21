@@ -39,7 +39,7 @@ class OptionsMenu extends MusicBeatState
 			new DFJKOption(controls),
 			new SixKeyMenu(controls),#end
 			new ScreenShake("Shake the window when Cheeky shoots/throws a boulder at you."),
-			new NineKeyMenu(controls),
+			new TwelveKeyMenu(controls),
 			new DownscrollOption("Change the layout of the strumline."),
 			new MiddleScrollOption("Centers your notes."),
 			new MiddleScrollOP("If middlescroll is activated, this option either puts the CPU's notes to the side or turns the opacity to 0."),
@@ -88,8 +88,7 @@ class OptionsMenu extends MusicBeatState
 			#end
 			new ResetScoreOption("Reset your score on all songs and weeks. This is irreversible!"),
 			new ResetSettings("Reset ALL your settings. This is irreversible!")
-		])
-		
+		]),
 	];
 
 	public var acceptInput:Bool = true;

@@ -40,7 +40,9 @@ class CheatingState extends MusicBeatState
             DiscordClient.changePresence("Landed Themselves in the Cheating Zone by Hacking", null);
 		#end
 
-        FlxG.sound.music.stop();
+        if (FlxG.sound.music.playing)
+            
+            FlxG.sound.music.stop();
 
         if (!FlxG.sound.music.playing)
         {

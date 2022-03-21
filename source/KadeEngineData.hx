@@ -1,6 +1,7 @@
 import flixel.input.gamepad.FlxGamepad;
 import openfl.Lib;
 import flixel.FlxG;
+import twelvekey.NoteVariables;
 
 class KadeEngineData
 {
@@ -163,9 +164,30 @@ class KadeEngineData
 		if (FlxG.save.data.middleScroll == null)
 			FlxG.save.data.middleScroll = false;
 
-		if (FlxG.save.data.middleScrollOP)
+		if (FlxG.save.data.middleScrollOP == null)
 			FlxG.save.data.middleScrollOP = false;
+
+		//leather_engine
 		
+		if (FlxG.save.data.F11Bind == null)
+			FlxG.save.data.F11Bind = "F11";
+
+		if (FlxG.save.data.pauseBind == null)
+			FlxG.save.data.pauseBind = "ENTER";
+
+		if (FlxG.save.data.remindEK == null)
+			FlxG.save.data.remindEK = false;
+
+		if (FlxG.save.data.unlockedMB == null)
+			FlxG.save.data.unlockedMB = false;
+
+		if (FlxG.save.data.unlockingMB == null)
+			FlxG.save.data.unlockingMB = [false, false];
+
+		#if debug
+		trace('unlocking mb anyway');
+		#end
+
 		var gamepad:FlxGamepad = FlxG.gamepads.lastActive;
 		
 		KeyBinds.gamepad = gamepad != null;

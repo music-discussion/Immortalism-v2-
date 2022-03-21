@@ -181,7 +181,10 @@ class Caching extends MusicBeatState
 
 		trace(Assets.cache.hasBitmapData('GF_assets'));
 
-		if (FlxG.random.int(1, 100) == 57)
+		var chance = FlxG.random.int(1, 100);
+		trace(chance);
+
+		if (chance > 75 && chance < 66)
 			FlxG.switchState(new CheatingState());
 		else
 			FlxG.switchState(new TitleState());

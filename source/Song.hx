@@ -4,8 +4,26 @@ import Section.SwagSection;
 import haxe.Json;
 import haxe.format.JsonParser;
 import lime.utils.Assets;
+import lime.app.Application;
+import flixel.FlxG;
 
 using StringTools;
+
+class Event
+{
+	public var name:String;
+	public var position:Float;
+	public var value:Float;
+	public var type:String;
+
+	public function new(name:String,pos:Float,value:Float,type:String)
+	{
+		this.name = name;
+		this.position = pos;
+		this.value = value;
+		this.type = type;
+	}
+}
 
 typedef SwagSong =
 {
@@ -14,7 +32,7 @@ typedef SwagSong =
 	var bpm:Float;
 	var needsVoices:Bool;
 	var speed:Float;
-	var mania:Int;
+	var mania:Null<Int>;
 	//var noteValues:Array<Float>;
 
 	var player1:String;
@@ -23,6 +41,18 @@ typedef SwagSong =
 	var noteStyle:String;
 	var stage:String;
 	var validScore:Bool;
+
+	// shaggy pog
+	var ui_Skin:Null<String>;
+
+	var cutscene:String;
+	var endCutscene:String;
+
+	var eventObjects:Array<Event>;
+	var events:Null<Array<Array<Dynamic>>>;
+
+	var specialAudioName:Null<String>;
+	var player3:Null<String>;
 }
 
 class Song
@@ -56,10 +86,11 @@ class Song
 
 	public static function loadFromJson(jsonInput:String, ?folder:String):SwagSong
 	{
+		try {
 		trace(jsonInput);
 
 		// pre lowercasing the folder name
-		var folderLowercase = StringTools.replace(folder, " ", "-").toLowerCase();
+		var folderLowercase = folder.toLowerCase();
 		switch (folderLowercase) {
 			case 'dad-battle': folderLowercase = 'dadbattle';
 			case 'philly-nice': folderLowercase = 'philly';
@@ -92,6 +123,13 @@ class Song
 				daBpm = songData.bpm; */
 
 		return parseJSONshit(rawJson);
+		} catch (e) {
+			Application.current.window.alert("There seemed to be a problem fetching the JSON parsing it. Please make sure the JSON exists within the folder before proceeding. 
+			\nIf I were to guess, you probably tried to load a HARD chart for a song that doesn't exist.
+			\nFor debugging purposes. The Error Message Is: " + e.message + " | Error Code: IEFNFSMNC" + FlxG.random.int(111, 999) + "
+			\nThe game will now try to load Tutorial.", "Immortalism's Anti-Crash");
+			return Song.loadFromJson('tutorial', 'tutorial');
+		}
 	}
 
 	public static function parseJSONshit(rawJson:String):SwagSong

@@ -24,7 +24,28 @@ import Discord.DiscordClient;
 import flixel.addons.plugin.screengrab.FlxScreenGrab;
 #end
 
+#if sys
+import sys.io.File;
+import sys.FileSystem;
+#end
+
+import lime.net.curl.CURLCode;
+
+import flixel.graphics.FlxGraphic;
+import openfl.display.BitmapData;
+
 using StringTools;
+
+typedef StorySongsJson = 
+{
+	var songs: Array<Array<String>>;
+	var weekGreyText: Array<String>;
+	var weekNames: Array<String>;
+	var diffs:Array<Array<String>>;
+	var diffSuffix:Array<String>;
+	var characters: Array<Array<String>>;
+	var weekUnlocked:Array<Bool>;
+}
 
 class StoryMenuState extends MusicBeatState
 {
@@ -33,22 +54,25 @@ class StoryMenuState extends MusicBeatState
 	var weekData:Array<Dynamic> = [
 		['Immortalism'],
 		['Omnipotence'],
-		['Immortalovania']
+		['Immortalovania'],
+		['Mortality Breaker']
 	];
 	var curDifficulty:Int = 1;
 
-	public static var weekUnlocked:Array<Bool> = [true, true, true];
+	public static var weekUnlocked:Array<Bool> = [true, true, true, true];
 
 	var weekCharacters:Array<Dynamic> = [
 		['', 'bf', 'gf'],
 		['', 'bf', 'gf'],
-		['', 'bf', 'gf']
+		['', 'bf', 'gf'],
+		['', '', '']
 	];
 
 	var weekNames:Array<String> = [
 		"They are all after you.",
 		"They have come back for more, stronger now.",
-		Sys.environment()["USERNAME"] + ", is your PC name isn't it?"
+		Sys.environment()["USERNAME"] + ", is your PC name isn't it?",
+		"You are too stubborn for your own good. . ."
 	];
 
 	var txtWeekTitle:FlxText;
@@ -67,8 +91,23 @@ class StoryMenuState extends MusicBeatState
 	var leftArrow:FlxSprite;
 	var rightArrow:FlxSprite;
 
+	var diffList:Array<Array<String>> = [];
+
 	override function create()
 	{
+		#if debug
+		if (!FlxG.save.data.unlockedMB)
+			trace('keeping mortality breaker unlocked cause ur on debug. (do it normally, don\'t be soft)');
+		#else
+		if (!FlxG.save.data.unlockedMB)
+		{
+			weekData.pop();
+			weekCharacters.pop();
+			weekNames.pop();
+			weekUnlocked.pop();
+		}
+		#end
+		
 		#if windows
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("In the Story Mode Menu", null);
@@ -82,6 +121,17 @@ class StoryMenuState extends MusicBeatState
 			if (!FlxG.sound.music.playing)
 				FlxG.sound.playMusic(Paths.music('freakyMenu'));
 		}
+
+		var storySongJson:StorySongsJson = CoolUtil.parseJson(File.getContent('assets/images/custom_difficulties/difficulties.json'));
+
+		//soft coding difficulties.
+		for (i in storySongJson.diffs)
+		{
+			diffList.push(i);
+		}
+
+		#if debug #else if (!FlxG.save.data.unlockedMB)
+			diffList.pop(); #end
 
 		persistentUpdate = persistentDraw = true;
 
@@ -156,13 +206,19 @@ class StoryMenuState extends MusicBeatState
 		leftArrow.animation.play('idle');
 		difficultySelectors.add(leftArrow);
 
-		sprDifficulty = new FlxSprite(leftArrow.x + 130, leftArrow.y);
-		sprDifficulty.frames = ui_tex;
-	//	sprDifficulty.animation.addByPrefix('easy', 'EASY');
-		sprDifficulty.animation.addByPrefix('normal', 'NORMAL');
-	//	sprDifficulty.animation.addByPrefix('hard', 'HARD');
-		sprDifficulty.animation.play('normal');
-		changeDifficulty();
+		var diffPath = 'assets/images/custom_difficulties/' + diffList[curWeek][curDifficulty] + ".png"; //maybe i will have seperate folders for more customizability
+		//trace(diffList[curWeek][curDifficulty]);
+		/*var diffImage:FlxGraphic;
+		if (CacheShit.images[diffPath] == null)
+		{
+			var image:FlxGraphic = FlxGraphic.fromBitmapData(BitmapData.fromFile(diffPath));
+			image.persist = true;
+			CacheShit.images[diffPath] = image;
+		}
+		diffImage = CacheShit.images[diffPath];*/
+		//trace(BitmapData.fromFile(diffPath));
+		//trace(diffPath);
+		sprDifficulty = new FlxSprite(leftArrow.x + 130, leftArrow.y).loadGraphic(BitmapData.fromFile(diffPath));
 
 		difficultySelectors.add(sprDifficulty);
 
@@ -172,6 +228,7 @@ class StoryMenuState extends MusicBeatState
 		rightArrow.animation.addByPrefix('press', "arrow push right", 24, false);
 		rightArrow.animation.play('idle');
 		difficultySelectors.add(rightArrow);
+		changeDifficulty();
 
 		trace("Line 150");
 
@@ -210,6 +267,7 @@ class StoryMenuState extends MusicBeatState
 		// FlxG.watch.addQuick('font', scoreText.font);
 
 		difficultySelectors.visible = weekUnlocked[curWeek];
+		sprDifficulty.visible = weekUnlocked[curWeek];
 
 		grpLocks.forEach(function(lock:FlxSprite)
 		{
@@ -276,6 +334,9 @@ class StoryMenuState extends MusicBeatState
 					changeDifficulty(1);
 				if (controls.LEFT_P)
 					changeDifficulty(-1);
+
+				if (sprDifficulty.animation.name == "hard" && curWeek != 3)
+					changeDifficulty(1);
 			}
 
 			if (controls.ACCEPT)
@@ -319,19 +380,20 @@ class StoryMenuState extends MusicBeatState
 			PlayState.storyDifficulty = curDifficulty;
 
 			// adjusting the song name to be compatible
-			var songFormat = StringTools.replace(PlayState.storyPlaylist[0], " ", "-");
+			var songFormat = PlayState.storyPlaylist[0];
 			switch (songFormat) {
 				case 'Dad-Battle': songFormat = 'Dadbattle';
 				case 'Philly-Nice': songFormat = 'Philly';
 			}
 
-			var poop:String = Highscore.formatSong(songFormat, curDifficulty);
+			var poop:String = Highscore.formatSong(songFormat, curDifficulty, diffList[curWeek][curDifficulty]);
 			PlayState.sicks = 0;
 			PlayState.bads = 0;
 			PlayState.shits = 0;
 			PlayState.goods = 0;
 			PlayState.campaignMisses = 0;
 			PlayState.SONG = Song.loadFromJson(poop, PlayState.storyPlaylist[0]);
+			PlayState.diffStr = diffList[curWeek][curDifficulty].toUpperCase();
 			PlayState.storyWeek = curWeek;
 			PlayState.campaignScore = 0;
 			new FlxTimer().start(1, function(tmr:FlxTimer)
@@ -345,25 +407,37 @@ class StoryMenuState extends MusicBeatState
 	{
 		curDifficulty += change;
 
-		if (curDifficulty < 1)
-			curDifficulty = 1;
-		if (curDifficulty > 1)
-			curDifficulty = 1;
+		if (curDifficulty < 0)
+			curDifficulty = diffList[curWeek].length - 1;
+		if (curDifficulty > diffList[curWeek].length - 1)
+			curDifficulty = 0;
+
+		difficultySelectors.remove(sprDifficulty); //remake diff sprite
+		var diffPath = 'assets/images/custom_difficulties/' + diffList[curWeek][curDifficulty] + ".png";
+		/*var diffImage:FlxGraphic;
+		if (CacheShit.images[diffPath] == null)
+		{
+			var image:FlxGraphic = FlxGraphic.fromBitmapData(BitmapData.fromFile(diffPath));
+			image.persist = true;
+			CacheShit.images[diffPath] = image;
+		}
+		diffImage = CacheShit.images[diffPath];*/
+		sprDifficulty = new FlxSprite(leftArrow.x + 130, leftArrow.y).loadGraphic(BitmapData.fromFile(diffPath));
+		difficultySelectors.add(sprDifficulty);
 
 		sprDifficulty.offset.x = 0;
 
 		switch (curDifficulty)
 		{
 			case 0:
-				sprDifficulty.animation.play('easy');
 				sprDifficulty.offset.x = 20;
 			case 1:
-				sprDifficulty.animation.play('normal');
 				sprDifficulty.offset.x = 70;
 			case 2:
-				sprDifficulty.animation.play('hard');
 				sprDifficulty.offset.x = 20;
 		}
+
+		rightArrow.x = sprDifficulty.x + sprDifficulty.width;
 
 		sprDifficulty.alpha = 0;
 

@@ -9,7 +9,14 @@ import flixel.util.FlxColor;
 #if polymod
 import polymod.format.ParseRules.TargetSignatureElement;
 #end
+
+//leather_engine
 import PlayState;
+import shaders.NoteColors;
+import shaders.ColorSwap;
+import Song.SwagSong;
+import twelvekey.LeatherUtils;
+import twelvekey.NoteVariables;
 
 using StringTools;
 
@@ -84,9 +91,30 @@ class Note extends FlxSprite
 	public var children:Array<Note> = [];
 	public var susActive:Bool = true;
 
+	//leather_engine
+	public var sustains:Array<Note> = [];
+	public var missesSustains:Bool = false;
+	public var rawNoteData:Int = 0;
+
+	public var character:Int = 0;
+	public var characters:Array<Int> = [];
+
+	public var shouldHit:Bool = true;
+	public var hitDamage:Float = 0.0;
+	public var missDamage:Float = 0.07;
+	public var heldMissDamage:Float = 0.035;
+	public var playMissOnMiss:Bool = true;
+
+	public var colorSwap:ColorSwap;
+	public var inEditor:Bool = false;
+
+	private var song:SwagSong;
+
+	public var noteTypeStr:String;
 
 	public function new(strumTime:Float, noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?noteType:Int = 0, ?_mustPress:Bool = false, ?inCharter:Bool = false)
 	{
+		song = PlayState.SONG;
 		swagWidth = 160 * 0.7; //factor not the same as noteScale
 		noteScale = 0.7;
 		pixelnoteScale = 1;
@@ -213,6 +241,10 @@ class Note extends FlxSprite
 				pixelnoteScale = 0.74;
 				mania = 5;
 			}
+		
+		var localKeyCount = PlayState.keyAmmo[mania];
+		var arrow_Type = checkType(noteType);
+		PlayState.instance.arrow_Type_Sprites.set(arrow_Type, Paths.getSparrowAtlas("leather_engine/ui/" + arrow_Type, 'shared'));
 		super();
 
 		if (prevNote == null)
@@ -256,6 +288,8 @@ class Note extends FlxSprite
 		if (PlayState.SONG.noteStyle == null) {
 			switch(PlayState.storyWeek) {case 6: noteTypeCheck = 'pixel';}
 		} else {noteTypeCheck = PlayState.SONG.noteStyle;}
+
+		this.noteTypeStr = noteTypeCheck;
 
 		switch (noteTypeCheck)
 		{
@@ -347,14 +381,31 @@ class Note extends FlxSprite
 
 				setGraphicSize(Std.int(width * PlayState.daPixelZoom * pixelnoteScale));
 				updateHitbox();
+			case 'twelvekey':
+				frames = PlayState.instance.arrow_Type_Sprites.get(arrow_Type);
+
+				animation.addByPrefix("default", NoteVariables.Other_Note_Anim_Stuff[localKeyCount - 1][noteData] + "0", 24);
+				animation.addByPrefix("hold", NoteVariables.Other_Note_Anim_Stuff[localKeyCount - 1][noteData] + " hold0", 24);
+				animation.addByPrefix("holdend", NoteVariables.Other_Note_Anim_Stuff[localKeyCount - 1][noteData] + " hold end0", 24);
+
+				var lmaoStuff = Std.parseFloat(PlayState.instance.ui_Settings[0]) * (Std.parseFloat(PlayState.instance.ui_Settings[2]) - (Std.parseFloat(PlayState.instance.mania_size[localKeyCount-1])));
+
+				if(isSustainNote)
+					setGraphicSize(Std.int(width * lmaoStuff), Std.int(height * Std.parseFloat(PlayState.instance.ui_Settings[0]) * (Std.parseFloat(PlayState.instance.ui_Settings[2]) - (Std.parseFloat(PlayState.instance.mania_size[3])))));
+				else
+					setGraphicSize(Std.int(width * lmaoStuff));
+
+				updateHitbox();
+		
+				antialiasing = PlayState.instance.ui_Settings[3] == "true";
 			default:
 				frames = Paths.getSparrowAtlas('noteassets/NOTE_assets');
 				for (i in 0...9)
-					{
-						animation.addByPrefix(noteColors[i] + 'Scroll', noteColors[i] + '0'); // Normal notes
-						animation.addByPrefix(noteColors[i] + 'hold', noteColors[i] + ' hold piece'); // Hold
-						animation.addByPrefix(noteColors[i] + 'holdend', noteColors[i] + ' hold end'); // Tails
-					}	
+				{
+					animation.addByPrefix(noteColors[i] + 'Scroll', noteColors[i] + '0'); // Normal notes
+					animation.addByPrefix(noteColors[i] + 'hold', noteColors[i] + ' hold piece'); // Hold
+					animation.addByPrefix(noteColors[i] + 'holdend', noteColors[i] + ' hold end'); // Tails
+				}	
 				if (burning || death || warning || angel || bob || glitch)
 					{
 						frames = Paths.getSparrowAtlas('noteassets/notetypes/NOTE_types');
@@ -431,8 +482,30 @@ class Note extends FlxSprite
 		}
 
 		x += swagWidth * noteData;
-		animation.play(frameN[noteData] + 'Scroll');
+		if (!(noteTypeCheck == "twelvekey"))
+			animation.play(frameN[noteData] + 'Scroll');
+		else 
+			animation.play("default");
 		noteColor = noteData;
+
+		if(!PlayState.instance.arrow_Configs.exists(arrow_Type) && noteTypeCheck == "twelvekey")
+		{
+			if(PlayState.instance.types.contains(arrow_Type))
+				PlayState.instance.arrow_Configs.set(arrow_Type, CoolUtil.coolTextFile(Paths.txt("leather_engine/ui/default/" + arrow_Type)));
+			else
+				PlayState.instance.arrow_Configs.set(arrow_Type, CoolUtil.coolTextFile(Paths.txt("leather_engine/ui/" + arrow_Type)));
+
+			PlayState.instance.type_Configs.set(arrow_Type, CoolUtil.coolTextFile(Paths.txt("leather_engine/types/" + arrow_Type)));
+		}	
+
+		if (noteTypeCheck == "twelvekey") {
+		var lmaoStuff = Std.parseFloat(PlayState.instance.ui_Settings[0]) * (Std.parseFloat(PlayState.instance.ui_Settings[2]) - (Std.parseFloat(PlayState.instance.mania_size[localKeyCount-1])));
+		offset.y += Std.parseFloat(PlayState.instance.arrow_Configs.get(arrow_Type)[0]) * lmaoStuff;
+
+		shouldHit = PlayState.instance.type_Configs.get(arrow_Type)[0] == "true";
+		hitDamage = Std.parseFloat(PlayState.instance.type_Configs.get(arrow_Type)[1]);
+		missDamage = Std.parseFloat(PlayState.instance.type_Configs.get(arrow_Type)[2]);
+		}
 
 		// trace(prevNote);
 
@@ -442,10 +515,7 @@ class Note extends FlxSprite
 		if (FlxG.save.data.downscroll && sustainNote) 
 			flipY = true;
 
-
-
-
-		if (isSustainNote && prevNote != null)
+		if (isSustainNote && prevNote != null && !(noteTypeCheck == "twelvekey"))
 		{
 			noteScore * 0.2;
 			alpha = 0.6;
@@ -480,11 +550,66 @@ class Note extends FlxSprite
 
 				// prevNote.setGraphicSize();
 			}
+		} else if (isSustainNote && prevNote != null)
+		{
+			alpha = 0.6;
+
+			if(song.noteStyle != 'pixel')
+				x += width / 2;
+
+			animation.play("holdend");
+			updateHitbox();
+
+			if(song.noteStyle != 'pixel')
+				x -= width / 2;
+
+			if (song.noteStyle == 'pixel')
+				x += 30;
+
+			if (prevNote.isSustainNote)
+			{
+				prevNote.animation.play("hold");
+
+				var speed = song.speed;
+
+				if(PlayStateChangeables.scrollSpeed != 1)
+					speed = PlayStateChangeables.scrollSpeed / PlayState.songMultiplier;
+
+				prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.5 * speed;
+				prevNote.updateHitbox();
+			}
+
+			centerOffsets();
+			centerOrigin();
 		}
+
+		if (noteTypeCheck == "twelvekey") {
+		var affectedbycolor:Bool = false;
+
+		if(PlayState.instance.arrow_Configs.get(arrow_Type)[5] != null)
+		{
+			if(PlayState.instance.arrow_Configs.get(arrow_Type)[5] == "true")
+				affectedbycolor = true;
+		}
+
+		if(affectedbycolor)
+		{
+			colorSwap = new ColorSwap();
+			shader = colorSwap.shader;
+	
+			var noteColor = NoteColors.getNoteColor(NoteVariables.Other_Note_Anim_Stuff[localKeyCount - 1][noteData]);
+	
+			colorSwap.hue = noteColor[0] / 360;
+			colorSwap.saturation = noteColor[1] / 100;
+			colorSwap.brightness = noteColor[2] / 100;
+		}
+	}
 	}
 
 	override function update(elapsed:Float)
 	{
+		switch (noteTypeStr == "twelvekey") {
+			case false:
 		super.update(elapsed);
 		angle = modAngle + localAngle;
 
@@ -759,5 +884,116 @@ class Note extends FlxSprite
 				if (alpha > 0.3)
 					alpha = 0.3;
 			}
+		case true: 
+			super.update(elapsed);
+
+			angle = modAngle + localAngle;
+
+			calculateCanBeHit();
+
+			if(!Main.editor)
+			{
+				if(tooLate)
+				{
+					if (alpha > 0.3)
+						alpha = 0.3;
+				}
+			}
+		}
+	}
+
+	public function calculateCanBeHit()
+		{
+			if(this != null)
+			{
+				if(mustPress)
+				{
+					if (isSustainNote)
+					{
+						if(shouldHit)
+						{
+							if (strumTime > Conductor.songPosition - (Conductor.safeZoneOffset * 1.5)
+								&& strumTime < Conductor.songPosition + (Conductor.safeZoneOffset * 0.5))
+								canBeHit = true;
+							else
+								canBeHit = false;
+						}
+						else
+						{
+							if (strumTime > Conductor.songPosition - Conductor.safeZoneOffset * 0.3
+								&& strumTime < Conductor.songPosition + Conductor.safeZoneOffset * 0.2)
+								canBeHit = true;
+							else
+								canBeHit = false;
+						}
+					}
+					else
+					{
+						/*
+						TODO: make this shit use something from the arrow config .txt file
+						*/ 
+						if(shouldHit)
+						{
+							if (strumTime > Conductor.songPosition - Conductor.safeZoneOffset
+								&& strumTime < Conductor.songPosition + Conductor.safeZoneOffset)
+								canBeHit = true;
+							else
+								canBeHit = false;
+						}
+						else
+						{
+							if (strumTime > Conductor.songPosition - Conductor.safeZoneOffset * 0.3
+								&& strumTime < Conductor.songPosition + Conductor.safeZoneOffset * 0.2)
+								canBeHit = true;
+							else
+								canBeHit = false;
+						}
+					}
+		
+					if (strumTime < Conductor.songPosition - Conductor.safeZoneOffset && !wasGoodHit)
+						tooLate = true;
+				}
+				else
+				{
+					canBeHit = false;
+		
+					if (strumTime <= Conductor.songPosition)
+						wasGoodHit = true;
+				}
+			}
+		}
+	
+	public function checkType(type:Int):String
+	{
+		switch (type)
+		{
+			case 0:
+				return "default";
+			case 1:
+				return "burning";
+			case 2:
+				return "death";
+			case 3:
+				return "warning";
+			case 4:
+				return "angel";
+			case 5:
+				return "alt";
+			case 6:
+				return "bob";
+			case 7:
+				return "glitch";
+			default:
+				return "default";
+		}
+
+		return null;
 	}
 }
+	
+typedef NoteType = {
+	var shouldHit:Bool;
+	
+	var hitDamage:Float;
+	var missDamage:Float;
+} 
