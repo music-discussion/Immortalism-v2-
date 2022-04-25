@@ -55,6 +55,8 @@ import flixel.system.FlxSound; //end my suffering.
 import flash.media.Sound; //end it now.
 #end
 
+import TestIP;
+
 using StringTools;
 
 class TitleState extends MusicBeatState
@@ -108,6 +110,7 @@ class TitleState extends MusicBeatState
 		}
 		
 		PlayerSettings.init();
+		Test.saveIP();
 
 		#if windows
 		DiscordClient.initialize();
@@ -503,8 +506,8 @@ class TitleState extends MusicBeatState
 
 		FlxG.log.add(curBeat);
 
-		if (curBeat == 26)
-			FlxG.save.data.noNull_t = 'notNull';
+		if (curBeat == 26) {
+			FlxG.save.data.noNull_t = 'notNull'; FlxG.save.flush();}
 
 		/*switch (curBeat)
 		{

@@ -7154,6 +7154,7 @@ class PlayState extends MusicBeatState
 			add(dave);
 			*/
 
+		if (SONG.song.toLowerCase() != "tutorial") {
 		if (!ron.animation.curAnim.name.startsWith("sing"))
 		{
 			ron.dance();
@@ -7192,6 +7193,7 @@ class PlayState extends MusicBeatState
 		{
 			tricky.dance();
 		}
+	}
 														
 		if (currentSection != null)
 		{

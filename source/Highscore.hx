@@ -92,20 +92,19 @@ class Highscore
 		FlxG.save.flush();
 	}
 
-	public static function formatSong(song:String, diff:Int, setDif:String = null):String
+	public static function formatSong(song:String, diff:Int, setDif:Null<String> = null):String
 	{
 		var daSong:String = song;
-		trace(setDif);
 
-		if (setDif == null && setDif != "normal") {
-		if (diff == 0)
-			daSong += '-mania';
-		else if (diff == 2)
-			daSong += '-hard';
-		} else 
-		{ 
+		/*if (setDif == null && setDif != ("normal" || null)) 
+		{
+			if (diff == 0)
+				daSong += '-mania';
+			else if (diff == 2)
+				daSong += '-hard';
+		} else { */
 			daSong += ('-' + setDif);
-		}
+	//	}
 
 		return daSong;
 	}

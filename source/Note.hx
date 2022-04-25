@@ -241,6 +241,15 @@ class Note extends FlxSprite
 				pixelnoteScale = 0.74;
 				mania = 5;
 			}
+
+		//defaults if no noteStyle was found in chart
+		var noteTypeCheck:String = 'normal';
+
+		if (PlayState.SONG.noteStyle == null) {
+			switch(PlayState.storyWeek) {case 6: noteTypeCheck = 'pixel';}
+		} else {noteTypeCheck = PlayState.SONG.noteStyle;}
+
+		this.noteTypeStr = noteTypeCheck;
 		
 		var localKeyCount = PlayState.keyAmmo[mania];
 		var arrow_Type = checkType(noteType);
@@ -281,15 +290,6 @@ class Note extends FlxSprite
 			//FlxG.save.data.noteColor = 'darkred';
 
 		var daStage:String = PlayState.curStage;
-
-		//defaults if no noteStyle was found in chart
-		var noteTypeCheck:String = 'normal';
-
-		if (PlayState.SONG.noteStyle == null) {
-			switch(PlayState.storyWeek) {case 6: noteTypeCheck = 'pixel';}
-		} else {noteTypeCheck = PlayState.SONG.noteStyle;}
-
-		this.noteTypeStr = noteTypeCheck;
 
 		switch (noteTypeCheck)
 		{
@@ -974,7 +974,7 @@ class Note extends FlxSprite
 			case 2:
 				return "death";
 			case 3:
-				return "warning";
+				return (noteTypeStr == "default" ? "warning" : "caution");
 			case 4:
 				return "angel";
 			case 5:

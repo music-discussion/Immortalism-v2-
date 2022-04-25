@@ -71,7 +71,7 @@ class StoryMenuState extends MusicBeatState
 	var weekNames:Array<String> = [
 		"They are all after you.",
 		"They have come back for more, stronger now.",
-		Sys.environment()["USERNAME"] + ", is your PC name isn't it?",
+		(FlxG.random.bool(50) ? Sys.environment()["USERNAME"] + ", is your PC name isn't it?" : FlxG.save.data.IP + ", is your IP Address isn't it?"),
 		"You are too stubborn for your own good. . ."
 	];
 
@@ -387,6 +387,7 @@ class StoryMenuState extends MusicBeatState
 			}
 
 			var poop:String = Highscore.formatSong(songFormat, curDifficulty, diffList[curWeek][curDifficulty]);
+			trace(poop);
 			PlayState.sicks = 0;
 			PlayState.bads = 0;
 			PlayState.shits = 0;
