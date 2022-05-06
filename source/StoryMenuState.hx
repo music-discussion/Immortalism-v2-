@@ -54,25 +54,22 @@ class StoryMenuState extends MusicBeatState
 	var weekData:Array<Dynamic> = [
 		['Immortalism'],
 		['Omnipotence'],
-		['Immortalovania'],
-		['Mortality Breaker']
+		['Immortalovania']
 	];
 	var curDifficulty:Int = 1;
 
-	public static var weekUnlocked:Array<Bool> = [true, true, true, true];
+	public static var weekUnlocked:Array<Bool> = [true, false, false];
 
 	var weekCharacters:Array<Dynamic> = [
 		['', 'bf', 'gf'],
 		['', 'bf', 'gf'],
-		['', 'bf', 'gf'],
-		['', '', '']
+		['', 'bf', 'gf']
 	];
 
 	var weekNames:Array<String> = [
 		"They are all after you.",
 		"They have come back for more, stronger now.",
-		(FlxG.random.bool(50) ? Sys.environment()["USERNAME"] + ", is your PC name isn't it?" : FlxG.save.data.IP + ", is your IP Address isn't it?"),
-		"You are too stubborn for your own good. . ."
+		(FlxG.save.data.selfAware ? "joke song go brrrr" : (FlxG.random.bool(50) ? Sys.environment()["USERNAME"] + ", is your PC name isn't it?" : FlxG.save.data.IP + ", is your IP Address isn't it?"))
 	];
 
 	var txtWeekTitle:FlxText;
@@ -97,14 +94,25 @@ class StoryMenuState extends MusicBeatState
 	{
 		#if debug
 		if (!FlxG.save.data.unlockedMB)
-			trace('keeping mortality breaker unlocked cause ur on debug. (do it normally, don\'t be soft)');
-		#else
-		if (!FlxG.save.data.unlockedMB)
 		{
-			weekData.pop();
-			weekCharacters.pop();
-			weekNames.pop();
-			weekUnlocked.pop();
+			trace('keeping mortality breaker unlocked cause ur on debug. (do it normally, don\'t be soft)');
+			weekData.push('Mortality Breaker');
+			weekUnlocked = [true, true, true];
+			weekUnlocked.push(true);
+	
+			weekCharacters.push(['', '', '']);
+	
+			weekNames.push("You are too stubborn for your own good. . .");
+		}
+		#else
+		if (FlxG.save.data.unlockedMB)
+		{
+			weekData.push('Mortality Breaker');
+			weekUnlocked.push(true);
+	
+			weekCharacters.push(['', '', '']);
+	
+			weekNames.push("You are too stubborn for your own good. . .");
 		}
 		#end
 		

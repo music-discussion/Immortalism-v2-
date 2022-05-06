@@ -184,10 +184,21 @@ class Caching extends MusicBeatState
 		var chance = FlxG.random.int(1, 100);
 		trace(chance);
 
-		if (chance > 75 && chance < 66)
+		if (chance > 75 && chance < 66 && FlxG.save.data.selfAware != null)
 			FlxG.switchState(new CheatingState());
 		else
-			FlxG.switchState(new TitleState());
+		{
+			#if release
+				if (!FlxG.save.data.selfAware)
+					FlxG.switchState(new SelfAwareState());
+				else 
+					FlxG.switchState(new TitleState());
+			#else 
+				if (FlxG.save.data.selfAware)
+					trace("even though you've set it, lets still show it.");
+				FlxG.switchState(new SelfAwareState());
+			#end
+		}
 	}
 
 }
